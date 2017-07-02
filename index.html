@@ -119,7 +119,7 @@
 				console.log(angle);
 				//console.log("v,vx,vy",v,vx,vy);
 				change=v; //makes the projectile
-				flag=1;//clicked
+				//flag=1;//clicked
 				click=1;//clicked
 				c=1; //ignore
 			}
@@ -171,7 +171,7 @@
 
 
 			this.newPos = function(){
-				if(flag==1 && click==1){ //if clicked and flag is 1
+				if(click==1){ //if click is 1
 
 					if(this.y>=630-this.radius){
 						this.y=630-this.radius;
