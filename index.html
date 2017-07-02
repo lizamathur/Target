@@ -27,7 +27,7 @@
 
 		var startGame = function(){
 			flag=0;
-			click=0;
+			click=0; // 1 when fired
 			//console.log(flag);
 
 			shoot=new component(180,420,20,"blue","circ"); //bullet
@@ -74,12 +74,14 @@
 			//if(flag!=1){
 				//console.log("Entered move inside ",flag);
 				var cx,cy;
-				mx=event.x;
-				my=event.y;
-				cx=shoot.x-event.x;
-				cy=event.y-shoot.y;
-				dist=Math.sqrt(cx*cx+cy*cy);
+				mx=event.x; // x position of mouse when fired
+				my=event.y; //y pos of mouse
+				cx=shoot.x-event.x; //x between mouse(moving) and bullet
+				cy=event.y-shoot.y; //y between mouse(moving) and bullet
+				dist=Math.sqrt(cx*cx+cy*cy); //actual dist between bullet and mouse(when moving)
 				if(dist<=120 && click!=1){
+					
+					//draws the green pointer when mouse inside the range
 					ctx=myGameArea.context;
 					ctx.beginPath();
 					ctx.arc(event.x,event.y,8,0,Math.PI * 2);
@@ -94,30 +96,32 @@
 		});
 
 
-		var angle,range,v,change;
+		var angle,v,change;
 		addEventListener("click",function(event){
 			if(flag==2 && click!=1){
 				//console.log("entered click",flag);
+				
+				//!!!!here all the variables become constants!!!!
 				mouse.x=event.x;
 				mouse.y=event.y;
-				sx=shoot.x;
-				sy=shoot.y;
-				dx=sx-mouse.x;
-				dy=mouse.y-sy;
+				sx=shoot.x; //initial x of bullet
+				sy=shoot.y; //initial y of bullet
+				dx=sx-mouse.x; //x between bullet(clicked) and mouse
+				dy=mouse.y-sy; //y between bullet(clicked) and mouse
 				gravity=1;
-				v=Math.sqrt(dx*dx+dy*dy);
+				v=Math.sqrt(dx*dx+dy*dy); //actual dist between bullet and mouse(clicked)
 				//range req
 				//console.log(vx/vy);
 				angle=Math.atan2(dx,dy);
-				vx=v*Math.sin(angle)*0.7;
+				vx=v*Math.sin(angle)*0.7; 
 				vy=v*Math.cos(angle);
 				angle=angle*180/Math.PI;
 				console.log(angle);
 				//console.log("v,vx,vy",v,vx,vy);
-				change=v;
+				change=v; //makes the projectile
 				flag=1;
 				click=1;
-				c=1;
+				c=1; //ignore
 			}
 
 		});
