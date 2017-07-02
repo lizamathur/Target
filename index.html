@@ -1,0 +1,205 @@
+<html>
+<head>
+	<title>Target Hit</title>
+
+	<style type="text/css">
+		#mycanvas{
+			border: 1px solid #d3d3d3;
+			background-color: pink;
+		}
+	</style>
+</head>
+
+<body onload="startGame();">
+
+
+	<canvas id="mycanvas" width="1350" height="650"></canvas>
+
+	<script type="text/javascript">
+
+
+		var shoot;
+		var flag;
+		var click;
+		var guide;
+		var outline;
+		
+
+		var startGame = function(){
+			flag=0;
+			click=0;
+			//console.log(flag);
+
+			shoot=new component(180,420,20,"blue","circ"); //bullet
+			guide=new component(180,420,130,"yellow","line"); //bigger circle
+			outline=new component(180,420,5,"green","outline"); //shoot-guide
+
+			myGameArea.start();
+		};
+
+
+		var myGameArea = {
+			canvas : document.getElementById("mycanvas"),
+			start : function(){
+				this.context=this.canvas.getContext("2d");
+				this.interval = setInterval(updateGameArea,80);
+			},
+			clear:function(){
+				this.context.clearRect(0,0,this.canvas.width,this.canvas.height);
+			}
+		};
+
+		var updateGameArea = function(){
+			
+			myGameArea.clear();
+
+
+			shoot.newPos();
+			shoot.update();
+			guide.update();
+			outline.update();
+		};
+
+		var mouse = {
+			x:undefined,
+			y:undefined
+		};
+
+		var sx,sy,angle,vx,vy,gravity,r,mx,my,dist,c=0;
+		
+
+		addEventListener("mousemove",function(event){
+			//flag=0;
+			//console.log("Entered move outside ",flag);
+			//if(flag!=1){
+				//console.log("Entered move inside ",flag);
+				var cx,cy;
+				mx=event.x;
+				my=event.y;
+				cx=shoot.x-event.x;
+				cy=event.y-shoot.y;
+				dist=Math.sqrt(cx*cx+cy*cy);
+				if(dist<=120 && click!=1){
+					ctx=myGameArea.context;
+					ctx.beginPath();
+					ctx.arc(event.x,event.y,8,0,Math.PI * 2);
+					ctx.fillStyle = "green";
+					ctx.fill();
+					ctx.stroke();
+					flag=2;
+				}
+			//}
+
+			
+		});
+
+
+		var angle,range,v,change;
+		addEventListener("click",function(event){
+			if(flag==2 && click!=1){
+				//console.log("entered click",flag);
+				mouse.x=event.x;
+				mouse.y=event.y;
+				sx=shoot.x;
+				sy=shoot.y;
+				dx=sx-mouse.x;
+				dy=mouse.y-sy;
+				gravity=1;
+				v=Math.sqrt(dx*dx+dy*dy);
+				//range req
+				//console.log(vx/vy);
+				angle=Math.atan2(dx,dy);
+				vx=v*Math.sin(angle)*0.7;
+				vy=v*Math.cos(angle);
+				angle=angle*180/Math.PI;
+				console.log(angle);
+				//console.log("v,vx,vy",v,vx,vy);
+				change=v;
+				flag=1;
+				click=1;
+				c=1;
+			}
+
+		});
+
+		function component(x,y,radius,color,type){
+
+
+			this.x=x;
+			this.y=y;
+			this.radius=radius;
+			this.color=color;
+			this.type=type;
+
+			this.update = function(){
+
+				if(this.type=="circ"){
+					//alert("circ");
+					ctx=myGameArea.context;
+					ctx.beginPath();
+					ctx.arc(this.x,this.y,this.radius,0,Math.PI * 2);
+					ctx.fillStyle = this.color;
+					ctx.fill();
+					ctx.stroke();
+				}
+				else if(this.type=="outline" && dist<=120){
+					//alert("outline");
+					abc=myGameArea.context;
+					abc.beginPath();
+					abc.moveTo(this.x,this.y);
+					abc.lineTo(mx,my);
+					abc.strokeStyle="green";
+					abc.stroke();
+				}
+				else
+				{
+					//alert("guide");
+					ctx=myGameArea.context;
+					ctx.beginPath();
+					ctx.arc(this.x,this.y,this.radius,0,Math.PI * 2);
+					ctx.strokeStyle="red";
+					ctx.stroke();
+				}
+
+
+			};
+
+
+
+			this.newPos = function(){
+				if(flag==1 && click==1){
+
+					if(this.y>=630-this.radius){
+						this.y=630-this.radius;
+						/*if(c==1){
+							this.x-=vx/5;
+							c=0;
+						}else{*/
+							this.x+=0;
+						//}
+
+					}
+					else{
+						if(angle>-90 && angle<90){
+
+							this.x+=vx+1.5*angle;
+							this.y=this.y-(vy-gravity+change);
+							change-=60;
+							//insert code for ball movement
+						}
+						else{
+							this.x+=vx-angle/100;
+							this.y=this.y+(vy-gravity+change);
+							change+=60;
+						}
+					}
+
+				}
+				
+			};
+		};
+
+
+	</script>
+</body>
+</html>
