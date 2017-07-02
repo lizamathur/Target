@@ -93,16 +93,11 @@
             gravity = 1;
             v = Math.sqrt(dx * dx + dy * dy); //actual dist between bullet and mouse(clicked)
             //range req
-            //console.log(vx/vy);
             angle = Math.atan2(dx, dy);
-            angle = 0.3566
             vx = v * Math.sin(angle) * 0.7;
             vy = v * Math.cos(angle);
             angle = angle * 180 / Math.PI;
-            angle = 20.43
-            v = 108.85
             console.log(angle);
-            //console.log("v,vx,vy",v,vx,vy);
             change = v; //makes the projectile
             flag = 1;
             click = 1;
@@ -114,6 +109,7 @@
     function component(x, y, radius, color, type) {
         this.x = x;
         this.y = y;
+        this.startY = y + 1
         this.radius = radius;
         this.color = color;
         this.type = type;
@@ -144,9 +140,9 @@
             }
         };
         this.newPos = function() {
-            if (flag == 1 && click == 1) {
-                if (this.y >= guide.y + guide.radius) {
-                    clearInterval(interval)
+            if (flag == 1 && click == 1) {//checks whether ball is in motion
+                if (this.y >= this.startY) {
+                    clearInterval(interval) 
                 } else {
                     if (angle > -90 && angle < 90) {
                         this.x += vx + 1.5 * angle;
