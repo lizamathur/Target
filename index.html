@@ -24,7 +24,6 @@
 		var guide;
 		var outline;
 		
-
 		var startGame = function(){
 			flag=0;
 			click=0; // 1 when fired
@@ -50,10 +49,7 @@
 		};
 
 		var updateGameArea = function(){
-			
 			myGameArea.clear();
-
-
 			shoot.newPos();
 			shoot.update();
 			guide.update();
@@ -61,8 +57,8 @@
 		};
 
 		var mouse = {
-			x:undefined,
-			y:undefined
+			x:null,
+			y:null
 		};
 
 		var sx,sy,angle,vx,vy,gravity,r,mx,my,dist,c=0;
