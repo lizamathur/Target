@@ -88,7 +88,7 @@
 					ctx.fillStyle = "green";
 					ctx.fill();
 					ctx.stroke();
-					flag=2;
+					flag=2; //checks if mouse is inside the circle
 				}
 			//}
 
@@ -98,7 +98,7 @@
 
 		var angle,v,change;
 		addEventListener("click",function(event){
-			if(flag==2 && click!=1){
+			if(flag==2 && click!=1){ //if mouse is inside the circle, click allowed
 				//console.log("entered click",flag);
 				
 				//!!!!here all the variables become constants!!!!
@@ -119,8 +119,8 @@
 				console.log(angle);
 				//console.log("v,vx,vy",v,vx,vy);
 				change=v; //makes the projectile
-				flag=1;
-				click=1;
+				flag=1;//clicked
+				click=1;//clicked
 				c=1; //ignore
 			}
 
@@ -171,7 +171,7 @@
 
 
 			this.newPos = function(){
-				if(flag==1 && click==1){
+				if(flag==1 && click==1){ //if clicked and flag is 1
 
 					if(this.y>=630-this.radius){
 						this.y=630-this.radius;
