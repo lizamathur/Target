@@ -37,7 +37,7 @@
         canvas: document.getElementById("mycanvas"),
         start: function() {
             this.context = this.canvas.getContext("2d");
-            this.interval = setInterval(updateGameArea, 80);
+            interval = setInterval(updateGameArea, 80);
         },
         clear: function() {
             this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -45,29 +45,22 @@
     };
 
     var updateGameArea = function() {
-
+        // console.log('Hi')
         myGameArea.clear();
-
-
-        shoot.newPos();
+        shoot.newPos()
         shoot.update();
         guide.update();
         outline.update();
-    };
+    }
 
     var mouse = {
-        x: undefined,
-        y: undefined
+        x: null,
+        y: null
     };
 
     var sx, sy, angle, vx, vy, gravity, r, mx, my, dist, c = 0;
 
-
     addEventListener("mousemove", function(event) {
-        //flag=0;
-        //console.log("Entered move outside ",flag);
-        //if(flag!=1){
-        //console.log("Entered move inside ",flag);
         var cx, cy;
         mx = event.x; // x position of mouse when fired
         my = event.y; //y pos of mouse
@@ -75,7 +68,6 @@
         cy = event.y - shoot.y; //y between mouse(moving) and bullet
         dist = Math.sqrt(cx * cx + cy * cy); //actual dist between bullet and mouse(when moving)
         if (dist <= 120 && click != 1) {
-
             //draws the green pointer when mouse inside the range
             ctx = myGameArea.context;
             ctx.beginPath();
@@ -85,17 +77,12 @@
             ctx.stroke();
             flag = 2;
         }
-        //}
-
-
     });
 
 
     var angle, v, change;
     addEventListener("click", function(event) {
         if (flag == 2 && click != 1) {
-            //console.log("entered click",flag);
-
             //!!!!here all the variables become constants!!!!
             mouse.x = event.x;
             mouse.y = event.y;
@@ -117,8 +104,8 @@
             flag = 1;
             click = 1;
             c = 1; //ignore
+            shoot.newPos();
         }
-
     });
 
     function component(x, y, radius, color, type) {
@@ -155,17 +142,22 @@
         };
         this.newPos = function() {
             if (flag == 1 && click == 1) {
-                if (angle > -90 && angle < 90) {
-                    this.x += vx + 1.5 * angle;
-                    this.y = this.y - (vy - gravity + change);
-                    change -= 60;
-                    //insert code for ball movement
+                if (this.y >= outline.y + outline.radius) {
+                    clearInterval(interval)
                 } else {
-                    this.x += vx - angle / 100;
-                    this.y = this.y + (vy - gravity + change);
-                    change += 60;
+                    if (angle > -90 && angle < 90) {
+                        this.x += vx + 1.5 * angle;
+                        this.y = this.y - (vy - gravity + change);
+                        change -= 60;
+                        //insert code for ball movement
+                    } else {
+                        this.x += vx - angle / 100;
+                        this.y = this.y + (vy - gravity + change);
+                        change += 60;
+                    }
                 }
             }
+
         };
     };
     </script>
