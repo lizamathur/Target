@@ -13,49 +13,50 @@
 <body onload="startGame();">
     <canvas id="mycanvas" width="1350" height="650"></canvas>
     <script type="text/javascript">
-    var shoot;
+    var bullet;
     var flag;
     var click;
     var guide;
     var outline;
-
-
-    var startGame = function() {
-        flag = 0;
-        click = 0; // 1 when fired
-        //console.log(flag);
-
-        shoot = new component(180, 420, 20, "blue", "circ"); //bullet
-        guide = new component(180, 420, 130, "yellow", "line"); //bigger circle
-        outline = new component(180, 420, 5, "green", "outline"); //shoot-guide
-
-        myGameArea.start();
-    };
-
+    const WIDTH = 1350
+    const HEIGHT = 650
+    const CHANGE = 50
+    const FRAME_RATE = 1/30
+    const FRAME_DELAY = FRAME_RATE * 1000
 
     var myGameArea = {
         canvas: document.getElementById("mycanvas"),
         start: function() {
             this.context = this.canvas.getContext("2d");
-            interval = setInterval(updateGameArea, 80);
+            loop = setInterval(updateGameArea, FRAME_DELAY);
         },
         clear: function() {
-            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.context.clearRect(0, 0, WIDTH, HEIGHT);
         }
     };
 
-    var updateGameArea = function() {
+    function startGame() {
+        flag = 0;
+        click = 0; // 1 when fired
+        bullet = new Component(180, 420, 20, "blue", "circ"); //bullet
+        guide = new Component(180, 420, 130, "yellow", "line"); //bigger circle
+        outline = new Component(180, 420, 5, "green", "outline"); //bullet-guide
+        myGameArea.start();
+    };
+
+    function updateGameArea() {
         // console.log('Hi')
         myGameArea.clear();
-        shoot.newPos()
-        shoot.update();
+        bullet.newPos()
+        bullet.update();
         guide.update();
         outline.update();
     }
 
-    var mouse = {
+    const mouse = {
         x: null,
-        y: null
+        y: null,
+        isDown: false
     };
 
     var sx, sy, angle, vx, vy, gravity, r, mx, my, dist, c = 0;
@@ -64,52 +65,56 @@
         var cx, cy;
         mx = event.x; // x position of mouse when fired
         my = event.y; //y pos of mouse
-        cx = shoot.x - event.x; //x between mouse(moving) and bullet
-        cy = event.y - shoot.y; //y between mouse(moving) and bullet
+        cx = bullet.x - event.x; //x between mouse(moving) and bullet
+        cy = event.y - bullet.y; //y between mouse(moving) and bullet
         dist = Math.sqrt(cx * cx + cy * cy); //actual dist between bullet and mouse(when moving)
         if (dist <= 120 && click != 1) {
             //draws the green pointer when mouse inside the range
-            ctx = myGameArea.context;
-            ctx.beginPath();
-            ctx.arc(event.x, event.y, 8, 0, Math.PI * 2);
-            ctx.fillStyle = "green";
-            ctx.fill();
-            ctx.stroke();
+            // ctx = myGameArea.context;
+            // ctx.beginPath();
+            // ctx.arc(event.x, event.y, 8, 0, Math.PI * 2);
+            // ctx.fillStyle = "green";
+            // ctx.fill();
+            // ctx.stroke();
+            bullet.x = event.x
+            bullet.y = event.y
+            bullet.update()
             flag = 2;
         }
     });
 
 
-    var angle, v, change;
+    var radian, v, change;
     addEventListener("click", function(event) {
         if (flag == 2 && click != 1) {
-            //!!!!here all the variables become constants!!!!
             mouse.x = event.x;
             mouse.y = event.y;
-            sx = shoot.x; //initial x of bullet
-            sy = shoot.y; //initial y of bullet
+            sx = bullet.startX; //initial x of bullet
+            sy = bullet.startY; //initial y of bullet
             dx = sx - mouse.x; //x between bullet(clicked) and mouse
             dy = mouse.y - sy; //y between bullet(clicked) and mouse
             gravity = 1;
             v = Math.sqrt(dx * dx + dy * dy); //actual dist between bullet and mouse(clicked)
             //range req
-            angle = Math.atan2(dx, dy);
-            vx = v * Math.sin(angle) * 0.7;
+            let angle = Math.atan2(dx, dy);
+            vx = v * Math.sin(angle);
             vy = v * Math.cos(angle);
-            angle = angle * 180 / Math.PI;
-            console.log(angle);
+            radian = angle * 180 / Math.PI;
+            console.log(radian);
             change = v; //makes the projectile
             flag = 1;
             click = 1;
-            c = 1; //ignore
-            shoot.newPos();
+            bullet.newPos();
         }
     });
 
-    function component(x, y, radius, color, type) {
+    function Component(x, y, radius, color, type) {
         this.x = x;
         this.y = y;
+        this.startX = x
         this.startY = y + 1
+        this.lastX = x
+        this.lastY = y
         this.radius = radius;
         this.color = color;
         this.type = type;
@@ -140,20 +145,28 @@
             }
         };
         this.newPos = function() {
-            if (flag == 1 && click == 1) {//checks whether ball is in motion
-                if (this.y >= this.startY) {
-                    clearInterval(interval) 
-                } else {
-                    if (angle > -90 && angle < 90) {
-                        this.x += vx + 1.5 * angle;
-                        this.y = this.y - (vy - gravity + change);
-                        change -= 60;
-                        //insert code for ball movement
-                    } else {
-                        this.x += vx - angle / 100;
-                        this.y = this.y + (vy - gravity + change);
-                        change += 60;
+            if (flag == 1 && click == 1) { //checks whether ball is in motion
+                if (radian > -90 && radian < 90) {
+                    this.x += vx;
+                    this.y = this.y - (vy - gravity + change);
+                    // this.x = vx + v * t * Math.sin(radian)
+                    // this.y = vy - v * t * Math.cos(radian)
+                    if (this.y >= HEIGHT - this.radius) {
+                    	this.x = (this.x + this.lastX) / 2 //This takes the median of the difference between last new xPos as final x position 
+                        this.y = HEIGHT - this.radius;
+                        clearInterval(loop)
                     }
+                    this.lastX = this.x
+                    change -= CHANGE;
+                } else {
+                    this.x += vx;
+                    this.y = this.y + (vy - gravity + change);
+                    if (this.y >= HEIGHT - this.radius) {
+                        this.y = HEIGHT - this.radius;
+                        clearInterval(loop)
+                    }
+                    this.lastX = this.x
+                    change += CHANGE;
                 }
             }
 
