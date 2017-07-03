@@ -69,13 +69,6 @@
         cy = event.y - bullet.y; //y between mouse(moving) and bullet
         dist = Math.sqrt(cx * cx + cy * cy); //actual dist between bullet and mouse(when moving)
         if (dist <= 120 && click != 1) {
-            //draws the green pointer when mouse inside the range
-            // ctx = myGameArea.context;
-            // ctx.beginPath();
-            // ctx.arc(event.x, event.y, 8, 0, Math.PI * 2);
-            // ctx.fillStyle = "green";
-            // ctx.fill();
-            // ctx.stroke();
             bullet.x = event.x
             bullet.y = event.y
             bullet.update()
@@ -147,25 +140,26 @@
         this.newPos = function() {
             if (flag == 1 && click == 1) { //checks whether ball is in motion
                 if (radian > -90 && radian < 90) {
-                    this.x += vx;
+                    this.x += vx+1.5*radian;
                     this.y = this.y - (vy - gravity + change);
-                    // this.x = vx + v * t * Math.sin(radian)
-                    // this.y = vy - v * t * Math.cos(radian)
                     if (this.y >= HEIGHT - this.radius) {
-                    	this.x = (this.x + this.lastX) / 2 //This takes the median of the difference between last new xPos as final x position 
-                        this.y = HEIGHT - this.radius;
+                    	this.y = HEIGHT - this.radius;
+                    	let medianX = (this.x + this.lastX) / 2 
+                    	this.x = (this.y === this.lastY) ? this.x : medianX
                         clearInterval(loop)
                     }
                     this.lastX = this.x
+                    this.lastY = this.y
                     change -= CHANGE;
                 } else {
-                    this.x += vx;
+                    this.x += vx-radian/100;
                     this.y = this.y + (vy - gravity + change);
                     if (this.y >= HEIGHT - this.radius) {
                         this.y = HEIGHT - this.radius;
                         clearInterval(loop)
                     }
                     this.lastX = this.x
+                    this.lastY = this.y
                     change += CHANGE;
                 }
             }
