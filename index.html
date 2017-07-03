@@ -10,21 +10,29 @@
     </style>
 </head>
 
-<body onload="startGame();">
-    <canvas id="mycanvas" width="1350" height="650"></canvas>
+<body onload="setupGameArea();">
+    <canvas id="mycanvas" width="1350" height="600">Canvas not supported in this browser</canvas>
     <script type="text/javascript">
-    var bullet;
-    var flag;
-    var click;
-    var guide;
-    var outline;
+    // Game configurations
     const WIDTH = 1350
-    const HEIGHT = 650
+    const HEIGHT = 600
     const CHANGE = 50
-    const FRAME_RATE = 1/30
+    const FRAME_RATE = 1 / 30
     const FRAME_DELAY = FRAME_RATE * 1000
+    const GRAVITY = 10
 
-    var myGameArea = {
+    // Game elements
+    const bullet
+    const guide
+    const outline
+
+    // Game counters, flags, states etc
+    let flag
+    let click
+    let radian
+    let change
+
+    const myGameArea = {
         canvas: document.getElementById("mycanvas"),
         start: function() {
             this.context = this.canvas.getContext("2d");
@@ -35,8 +43,8 @@
         }
     };
 
-    function startGame() {
-        flag = 0;
+    function setupGameArea() {
+        flag = 0; // 0 initial value, 1 after launch, 2 while taking aim
         click = 0; // 1 when fired
         bullet = new Component(180, 420, 20, "blue", "circ"); //bullet
         guide = new Component(180, 420, 130, "yellow", "line"); //bigger circle
@@ -45,7 +53,6 @@
     };
 
     function updateGameArea() {
-        // console.log('Hi')
         myGameArea.clear();
         bullet.newPos()
         bullet.update();
@@ -53,47 +60,31 @@
         outline.update();
     }
 
-    const mouse = {
-        x: null,
-        y: null,
-        isDown: false
-    };
-
-    var sx, sy, angle, vx, vy, gravity, r, mx, my, dist, c = 0;
-
     addEventListener("mousemove", function(event) {
-        var cx, cy;
-        mx = event.x; // x position of mouse when fired
-        my = event.y; //y pos of mouse
-        cx = bullet.x - event.x; //x between mouse(moving) and bullet
-        cy = event.y - bullet.y; //y between mouse(moving) and bullet
-        dist = Math.sqrt(cx * cx + cy * cy); //actual dist between bullet and mouse(when moving)
-        if (dist <= 120 && click != 1) {
+        const cx = bullet.startX - event.x; //x between mouse(moving) and bullet
+        const cy = event.y - bullet.startY; //y between mouse(moving) and bullet
+        const lengthOfLine = Math.sqrt(cx * cx + cy * cy); //actual dist between bullet and mouse(when moving)
+        const maxLengthOfLine = guide.radius - bullet.radius
+        if (lengthOfLine <= maxLengthOfLine && click != 1) {
             bullet.x = event.x
             bullet.y = event.y
+            bullet.launchX = bullet.x
+            bullet.launchY = bullet.y
             bullet.update()
             flag = 2;
         }
     });
 
-
-    var radian, v, change;
     addEventListener("click", function(event) {
         if (flag == 2 && click != 1) {
-            mouse.x = event.x;
-            mouse.y = event.y;
-            sx = bullet.startX; //initial x of bullet
-            sy = bullet.startY; //initial y of bullet
-            dx = sx - mouse.x; //x between bullet(clicked) and mouse
-            dy = mouse.y - sy; //y between bullet(clicked) and mouse
-            gravity = 1;
-            v = Math.sqrt(dx * dx + dy * dy); //actual dist between bullet and mouse(clicked)
+            dx = bullet.startX - event.x; //x between bullet(clicked) and mouse
+            dy = event.y - bullet.startY; //y between bullet(clicked) and mouse
+            let v = Math.sqrt(dx * dx + dy * dy); //actual dist between bullet and mouse(clicked)
             //range req
             let angle = Math.atan2(dx, dy);
             vx = v * Math.sin(angle);
             vy = v * Math.cos(angle);
             radian = angle * 180 / Math.PI;
-            console.log(radian);
             change = v; //makes the projectile
             flag = 1;
             click = 1;
@@ -105,31 +96,28 @@
         this.x = x;
         this.y = y;
         this.startX = x
-        this.startY = y + 1
+        this.startY = y
         this.lastX = x
         this.lastY = y
         this.radius = radius;
         this.color = color;
         this.type = type;
         this.update = function() {
-            if (this.type == "circ") {
-                //alert("circ");
+            if (this.type == "circ") {// Bullet
                 ctx = myGameArea.context;
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                 ctx.fillStyle = this.color;
                 ctx.fill();
                 ctx.stroke();
-            } else if (this.type == "outline" && dist <= 120) {
-                //alert("outline");
+            } else if (this.type == "outline") {//Line of Aim
                 abc = myGameArea.context;
                 abc.beginPath();
                 abc.moveTo(this.x, this.y);
-                abc.lineTo(mx, my);
+                abc.lineTo(bullet.launchX, bullet.launchY);
                 abc.strokeStyle = "green";
                 abc.stroke();
-            } else {
-                //alert("guide");
+            } else {// Outer circle
                 ctx = myGameArea.context;
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
@@ -140,20 +128,20 @@
         this.newPos = function() {
             if (flag == 1 && click == 1) { //checks whether ball is in motion
                 if (radian > -90 && radian < 90) {
-                    this.x += vx+1.5*radian;
-                    this.y = this.y - (vy - gravity + change);
+                    this.x += vx + 1.5 * radian;
+                    this.y = this.y - (vy - GRAVITY + change);
                     if (this.y >= HEIGHT - this.radius) {
-                    	this.y = HEIGHT - this.radius;
-                    	let medianX = (this.x + this.lastX) / 2 
-                    	this.x = (this.y === this.lastY) ? this.x : medianX
+                        this.y = HEIGHT - this.radius;
+                        let medianX = (this.x + this.lastX) / 2
+                        this.x = (this.y === this.lastY) ? this.x : medianX
                         clearInterval(loop)
                     }
                     this.lastX = this.x
                     this.lastY = this.y
                     change -= CHANGE;
                 } else {
-                    this.x += vx-radian/100;
-                    this.y = this.y + (vy - gravity + change);
+                    this.x += vx - radian / 100;
+                    this.y = this.y + (vy - GRAVITY + change);
                     if (this.y >= HEIGHT - this.radius) {
                         this.y = HEIGHT - this.radius;
                         clearInterval(loop)
