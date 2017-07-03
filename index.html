@@ -1,205 +1,160 @@
 <html>
-<head>
-	<title>Target Hit</title>
 
-	<style type="text/css">
-		#mycanvas{
-			border: 1px solid #d3d3d3;
-			background-color: pink;
-		}
-	</style>
+<head>
+    <title>Target Hit</title>
+    <style type="text/css">
+    #mycanvas {
+        border: 1px solid #d3d3d3;
+        background-color: pink;
+    }
+    </style>
 </head>
 
-<body onload="startGame();">
+<body onload="setupGameArea();">
+    <canvas id="mycanvas" width="1350" height="600">Canvas not supported in this browser</canvas>
+    <script type="text/javascript">
+    // Game configurations
+    const WIDTH = 1350
+    const HEIGHT = 600
+    const CHANGE = 50
+    const FRAME_RATE = 1 / 30
+    const FRAME_DELAY = FRAME_RATE * 1000
+    const GRAVITY = 10
 
+    // Game elements
+    const bullet
+    const guide
+    const outline
 
-	<canvas id="mycanvas" width="1350" height="650"></canvas>
+    // Game counters, flags, states etc
+    let flag
+    let click
+    let radian
+    let change
 
-	<script type="text/javascript">
+    const myGameArea = {
+        canvas: document.getElementById("mycanvas"),
+        start: function() {
+            this.context = this.canvas.getContext("2d");
+            loop = setInterval(updateGameArea, FRAME_DELAY);
+        },
+        clear: function() {
+            this.context.clearRect(0, 0, WIDTH, HEIGHT);
+        }
+    };
 
+    function setupGameArea() {
+        flag = 0; // 0 initial value, 1 after launch, 2 while taking aim
+        click = 0; // 1 when fired
+        bullet = new Component(180, 420, 20, "blue", "circ"); //bullet
+        guide = new Component(180, 420, 130, "yellow", "line"); //bigger circle
+        outline = new Component(180, 420, 5, "green", "outline"); //bullet-guide
+        myGameArea.start();
+    };
 
-		var shoot;
-		var flag;
-		var click;
-		var guide;
-		var outline;
-		
-		var startGame = function(){
-			flag=0;
-			click=0; // 1 when fired
-			//console.log(flag);
+    function updateGameArea() {
+        myGameArea.clear();
+        bullet.newPos()
+        bullet.update();
+        guide.update();
+        outline.update();
+    }
 
-			shoot=new component(180,420,20,"blue","circ"); //bullet
-			guide=new component(180,420,130,"yellow","line"); //bigger circle
-			outline=new component(180,420,5,"green","outline"); //shoot-guide
+    addEventListener("mousemove", function(event) {
+        const cx = bullet.startX - event.x; //x between mouse(moving) and bullet
+        const cy = event.y - bullet.startY; //y between mouse(moving) and bullet
+        const lengthOfLine = Math.sqrt(cx * cx + cy * cy); //actual dist between bullet and mouse(when moving)
+        const maxLengthOfLine = guide.radius - bullet.radius
+        if (lengthOfLine <= maxLengthOfLine && click != 1) {
+            bullet.x = event.x
+            bullet.y = event.y
+            bullet.launchX = bullet.x
+            bullet.launchY = bullet.y
+            bullet.update()
+            flag = 2;
+        }
+    });
 
-			myGameArea.start();
-		};
+    addEventListener("click", function(event) {
+        if (flag == 2 && click != 1) {
+            dx = bullet.startX - event.x; //x between bullet(clicked) and mouse
+            dy = event.y - bullet.startY; //y between bullet(clicked) and mouse
+            let v = Math.sqrt(dx * dx + dy * dy); //actual dist between bullet and mouse(clicked)
+            //range req
+            let angle = Math.atan2(dx, dy);
+            vx = v * Math.sin(angle);
+            vy = v * Math.cos(angle);
+            radian = angle * 180 / Math.PI;
+            change = v; //makes the projectile
+            flag = 1;
+            click = 1;
+            bullet.newPos();
+        }
+    });
 
+    function Component(x, y, radius, color, type) {
+        this.x = x;
+        this.y = y;
+        this.startX = x
+        this.startY = y
+        this.lastX = x
+        this.lastY = y
+        this.radius = radius;
+        this.color = color;
+        this.type = type;
+        this.update = function() {
+            if (this.type == "circ") {// Bullet
+                ctx = myGameArea.context;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.stroke();
+            } else if (this.type == "outline") {//Line of Aim
+                abc = myGameArea.context;
+                abc.beginPath();
+                abc.moveTo(this.x, this.y);
+                abc.lineTo(bullet.launchX, bullet.launchY);
+                abc.strokeStyle = "green";
+                abc.stroke();
+            } else {// Outer circle
+                ctx = myGameArea.context;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.strokeStyle = "red";
+                ctx.stroke();
+            }
+        };
+        this.newPos = function() {
+            if (flag == 1 && click == 1) { //checks whether ball is in motion
+                if (radian > -90 && radian < 90) {
+                    this.x += vx + 1.5 * radian;
+                    this.y = this.y - (vy - GRAVITY + change);
+                    if (this.y >= HEIGHT - this.radius) {
+                        this.y = HEIGHT - this.radius;
+                        let medianX = (this.x + this.lastX) / 2
+                        this.x = (this.y === this.lastY) ? this.x : medianX
+                        clearInterval(loop)
+                    }
+                    this.lastX = this.x
+                    this.lastY = this.y
+                    change -= CHANGE;
+                } else {
+                    this.x += vx - radian / 100;
+                    this.y = this.y + (vy - GRAVITY + change);
+                    if (this.y >= HEIGHT - this.radius) {
+                        this.y = HEIGHT - this.radius;
+                        clearInterval(loop)
+                    }
+                    this.lastX = this.x
+                    this.lastY = this.y
+                    change += CHANGE;
+                }
+            }
 
-		var myGameArea = {
-			canvas : document.getElementById("mycanvas"),
-			start : function(){
-				this.context=this.canvas.getContext("2d");
-				this.interval = setInterval(updateGameArea,80);
-			},
-			clear:function(){
-				this.context.clearRect(0,0,this.canvas.width,this.canvas.height);
-			}
-		};
-
-		var updateGameArea = function(){
-			myGameArea.clear();
-			shoot.newPos();
-			shoot.update();
-			guide.update();
-			outline.update();
-		};
-
-		var mouse = {
-			x:null,
-			y:null
-		};
-
-		var sx,sy,angle,vx,vy,gravity,r,mx,my,dist,c=0;
-		
-
-		addEventListener("mousemove",function(event){
-			//flag=0;
-			//console.log("Entered move outside ",flag);
-			//if(flag!=1){
-				//console.log("Entered move inside ",flag);
-				var cx,cy;
-				mx=event.x; // x position of mouse when fired
-				my=event.y; //y pos of mouse
-				cx=shoot.x-event.x; //x between mouse(moving) and bullet
-				cy=event.y-shoot.y; //y between mouse(moving) and bullet
-				dist=Math.sqrt(cx*cx+cy*cy); //actual dist between bullet and mouse(when moving)
-				if(dist<=120 && click!=1){
-					
-					//draws the green pointer when mouse inside the range
-					ctx=myGameArea.context;
-					ctx.beginPath();
-					ctx.arc(event.x,event.y,8,0,Math.PI * 2);
-					ctx.fillStyle = "green";
-					ctx.fill();
-					ctx.stroke();
-					flag=2; //checks if mouse is inside the circle
-				}
-			//}
-
-			
-		});
-
-
-		var angle,v,change;
-		addEventListener("click",function(event){
-			if(flag==2 && click!=1){ //if mouse is inside the circle, click allowed
-				//console.log("entered click",flag);
-				
-				//!!!!here all the variables become constants!!!!
-				mouse.x=event.x;
-				mouse.y=event.y;
-				sx=shoot.x; //initial x of bullet
-				sy=shoot.y; //initial y of bullet
-				dx=sx-mouse.x; //x between bullet(clicked) and mouse
-				dy=mouse.y-sy; //y between bullet(clicked) and mouse
-				gravity=1;
-				v=Math.sqrt(dx*dx+dy*dy); //actual dist between bullet and mouse(clicked)
-				//range req
-				//console.log(vx/vy);
-				angle=Math.atan2(dx,dy);
-				vx=v*Math.sin(angle)*0.7; 
-				vy=v*Math.cos(angle);
-				angle=angle*180/Math.PI;
-				console.log(angle);
-				//console.log("v,vx,vy",v,vx,vy);
-				change=v; //makes the projectile
-				//flag=1;//clicked
-				click=1;//clicked
-				c=1; //ignore
-			}
-
-		});
-
-		function component(x,y,radius,color,type){
-
-
-			this.x=x;
-			this.y=y;
-			this.radius=radius;
-			this.color=color;
-			this.type=type;
-
-			this.update = function(){
-
-				if(this.type=="circ"){
-					//alert("circ");
-					ctx=myGameArea.context;
-					ctx.beginPath();
-					ctx.arc(this.x,this.y,this.radius,0,Math.PI * 2);
-					ctx.fillStyle = this.color;
-					ctx.fill();
-					ctx.stroke();
-				}
-				else if(this.type=="outline" && dist<=120){
-					//alert("outline");
-					abc=myGameArea.context;
-					abc.beginPath();
-					abc.moveTo(this.x,this.y);
-					abc.lineTo(mx,my);
-					abc.strokeStyle="green";
-					abc.stroke();
-				}
-				else
-				{
-					//alert("guide");
-					ctx=myGameArea.context;
-					ctx.beginPath();
-					ctx.arc(this.x,this.y,this.radius,0,Math.PI * 2);
-					ctx.strokeStyle="red";
-					ctx.stroke();
-				}
-
-
-			};
-
-
-
-			this.newPos = function(){
-				if(click==1){ //if clicked in the range
-
-					if(this.y>=630-this.radius){
-						this.y=630-this.radius;
-						/*if(c==1){
-							this.x-=vx/5;
-							c=0;
-						}else{*/
-							this.x+=0;
-						//}
-
-					}
-					else{
-						if(angle>-90 && angle<90){
-
-							this.x+=vx+1.5*angle;
-							this.y=this.y-(vy-gravity+change);
-							change-=60;
-							//insert code for ball movement
-						}
-						else{
-							this.x+=vx-angle/100;
-							this.y=this.y+(vy-gravity+change);
-							change+=60;
-						}
-					}
-
-				}
-				
-			};
-		};
-
-
-	</script>
+        };
+    };
+    </script>
 </body>
+
 </html>
