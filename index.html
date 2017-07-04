@@ -3,24 +3,22 @@
 	<title>Target Hit</title>
 
 	<style type="text/css">
+	*{
+		margin: 0px;
+			padding: 0px;
+			overflow: hidden;
+	}
 		#mycanvas{
-			background-color: #e0ccff;
-		}
-		body{
+			
 			background-color: #e0ccff;
 		}
 	</style>
 </head>
 
 <body onload="startGame();">
-	<canvas id="mycanvas" width="1350" height="620"></canvas>
+	<canvas id="mycanvas"></canvas>
 
 	<script type="text/javascript">
-
-																	//<b id="space1">Score: &nbsp</b>
-																		//<b id="score">0</b>
-
-		
 		var bullet;
 		var flag; //initially: 0  ; 2 when mouse inside range
 		var click; //initially: 0 ; 1 when mouse clicked inside range(bullet fires)
@@ -32,7 +30,6 @@
 		var hit;
 		var scorecard;
 		var audio1,audio2,audio3,audio4;
-		
 
 		var startGame = function(){
 			flag=0;
@@ -43,7 +40,7 @@
 			audio2=new sound("sounds/gameover.flac");
 			audio3=new sound("sounds/hit.wav");
 			audio4=new sound("sounds/highscore.wav");
-			range=new component(180,420,130,"","line");
+			range=new component(180,420,130,"","range");
 			guide=new component(180,420,5,"","guide");
 			var x=(Math.random()*800)+400;
 			var y=(Math.random()*30)+520;
@@ -56,8 +53,7 @@
 
 
 		var myGameArea = {
-			canvas : document.getElementById("mycanvas"),
-			start : function(){
+			canvas : document.getElementById("mycanvas"),start : function(){
 				this.context=this.canvas.getContext("2d");
 				interval = setInterval(updateGameArea,80);
 			},
@@ -66,11 +62,14 @@
 			}
 		};
 
+
+			myGameArea.canvas.height=window.innerHeight;
+			myGameArea.canvas.width=window.innerWidth;
+
 		var updateGameArea = function(){
 			
 			myGameArea.clear();
-			
-			
+			scorecard.update2();
 			
 			if(bullet.y>=(myGameArea.canvas.height-70) && ((bullet.x<(target.x-100))|| (bullet.x>(target.x+100)))){
 						score=0;
@@ -109,7 +108,7 @@
 				target.update1();
 				bullet.update();
 			}
-			scorecard.update2();
+			
 
 		};
 
@@ -151,7 +150,7 @@
 					ctx=myGameArea.context;
 					ctx.beginPath();
 					ctx.arc(mousex,mousey,8,0,Math.PI * 2);
-					ctx.fillStyle = "green";
+					ctx.fillStyle = "#4d4d4d";
 					ctx.fill();
 					flag=2;
 				}
@@ -196,18 +195,22 @@
 			this.x=x;
 			this.y=y;
 			this.update2 = function(){
+
+				//score
 				txt=myGameArea.context;
 				txt.font="30px Comic Sans MS";
 				txt.fillStyle = "#009999";
 				txt.textAlign = "center";
 				txt.fillText(text1+score,this.x,this.y);
 
+				//highscore
 				hscore=myGameArea.context;
 				hscore.font="30px Comic Sans MS";
 				hscore.fillStyle = "#8c1aff";
 				hscore.textAlign = "center";
 				hscore.fillText(text2+highScore,500,50);
 
+				//instructions
 				rule=myGameArea.context;
 				rule.font="25px Comic Sans MS";
 				rule.fillStyle = "#5900b3";
@@ -220,6 +223,13 @@
 				rule.fillText(instruction,970,this.y+60);
 				instruction="CLICK to fire!"; 
 				rule.fillText(instruction,1060,this.y+100);
+
+
+				//green ground
+				ground=myGameArea.context;
+				ground.fillStyle="#00cc00";
+				ground.fillRect(0,myGameArea.canvas.height-180,myGameArea.canvas.width,180);
+
 			};
 		};
 
@@ -284,18 +294,18 @@
 					ctx2.beginPath();
 					ctx2.moveTo(this.x,this.y);
 					ctx2.lineTo(mousex,mousey);
-					if(click==1)
-					ctx2.strokeStyle="#e0ccff"
-					else
-					ctx2.strokeStyle="#e6ffe6";
-					ctx2.stroke();
+					if(click!=1){
+						ctx2.strokeStyle="#999966";
+						ctx2.stroke();
+					}
+					
 				}
 				else
 				{
 					ctx3=myGameArea.context;
 					ctx3.beginPath();
 					ctx3.arc(this.x,this.y,this.radius,0,Math.PI * 2);
-					ctx3.strokeStyle="red";
+					ctx3.strokeStyle="#ff6666";
 					ctx3.stroke();
 				}
 
@@ -335,7 +345,8 @@
 	            msg.font = "italic 100px Arial";
 	            msg.fillText(text, myGameArea.canvas.width/2, myGameArea.canvas.height/2);
 	            alpha = alpha - 0.05; 
-	            if (alpha < 0) {clearInterval(interval3);
+	            if (alpha < 0) {
+	            	clearInterval(interval3);
 	            }
 	        }, 50); 
    		}
