@@ -28,8 +28,10 @@
 		var guide;
 		var target;
 		var score=0;
+		var highScore=0;
 		var hit;
 		var scorecard;
+		var audio;
 		
 
 		var startGame = function(){
@@ -43,6 +45,7 @@
 			target=new component2(x,y);
 			bullet=new component(180,420,12,"#009999","circ");
 			scorecard=new component3(150,50);
+			//highScoreCard=new component3(900,50);
 			myGameArea.start();
 		};
 
@@ -66,13 +69,32 @@
 			
 			if(bullet.y>=(myGameArea.canvas.height-70) && ((bullet.x<(target.x-100))|| (bullet.x>(target.x+100)))){
 						score=0;
+						var audio=new sound("sounds/gameover.flac");
+						audio.play();
 						fadeOut("Game Over!")
 						clearInterval(interval);
 						startGame();
 			}
 			else if((bullet.x>(target.x-100))&& (bullet.x<(target.x+100)) && (bullet.y>(target.y-35))){
 						hit=1;
-						score+=10;
+
+						if((bullet.x>(target.x-25))&& (bullet.x<(target.x+25)) && (bullet.y>(target.y-6)))
+							score+=20;
+						else if((bullet.x>(target.x-60))&& (bullet.x<(target.x+60)) && (bullet.y>(target.y-14)))
+							score+=15;
+						else if((bullet.x>(target.x-80))&& (bullet.x<(target.x+80)) && (bullet.y>(target.y-25)))
+							score+=10;
+						else
+							score+=5;
+						if(score>highScore){
+							var audio=new sound("sounds/highscore.wav");
+							audio.play();
+							highScore=score;
+						}
+						else{
+							var audio=new sound("sounds/hit.wav");
+							audio.play();
+						}
 						fadeOut("Score!");
 						/*ctx1=myGameArea.context;
 						ctx1.beginPath();
@@ -92,8 +114,25 @@
 				bullet.update();
 			}
 			scorecard.update2();
+			//highScoreCard.update2();
 
 		};
+
+
+		function sound(src) {
+		    this.sound = document.createElement("audio");
+		    this.sound.src = src;
+		    this.sound.setAttribute("preload", "auto");
+		    this.sound.setAttribute("controls", "none");
+		    this.sound.style.display = "none";
+		    document.body.appendChild(this.sound);
+		    this.play = function(){
+		        this.sound.play();
+		    }
+		    /*this.stop = function(){
+		        this.sound.pause();
+		    }  */  
+		}
 
 		//object to store mouse x and y position
 		var mouse = {  
@@ -153,21 +192,30 @@
 				vy=v*Math.cos(angle);
 				angle=angle*180/Math.PI; //in DEGREES
 				click=1;
+				var audio=new sound("sounds/swoosh.wav");
+				audio.play();
 			}
 
 		});
 
 		function component3(x,y){
-			var text="Score : "
+			var text1="Score : ";
+			var text2="High-Score : ";
 			var instruction;
 			this.x=x;
 			this.y=y;
 			this.update2 = function(){
 				txt=myGameArea.context;
-				txt.font="40px Comic Sans MS";
+				txt.font="30px Comic Sans MS";
 				txt.fillStyle = "#009999";
 				txt.textAlign = "center";
-				txt.fillText(text+score,this.x,this.y);
+				txt.fillText(text1+score,this.x,this.y);
+
+				hscore=myGameArea.context;
+				hscore.font="30px Comic Sans MS";
+				hscore.fillStyle = "#8c1aff";
+				hscore.textAlign = "center";
+				hscore.fillText(text2+highScore,500,50);
 
 				rule=myGameArea.context;
 				rule.font="25px Comic Sans MS";
@@ -198,21 +246,29 @@
 				t1.ellipse(this.x,this.y,100,35,0,0,Math.PI*2);
 				t1.fillStyle = "#cc0000";
 				t1.fill();
+				t1.strokeStyle="black";
+				t1.stroke();
 
 				t2.beginPath();
 				t2.ellipse(this.x,this.y,80,25,0,0,Math.PI*2);
 				t2.fillStyle = "#ffffff";
 				t2.fill();
+				t2.strokeStyle="black";
+				t2.stroke();
 
 				t3.beginPath();
 				t3.ellipse(this.x,this.y,60,14,0,0,Math.PI*2);
 				t3.fillStyle = "#cc0000";
 				t3.fill();
+				t3.strokeStyle="black";
+				t3.stroke();
 
 				t4.beginPath();
 				t4.ellipse(this.x,this.y,25,6,0,0,Math.PI*2);
 				t4.fillStyle = "#ffffff";
 				t4.fill();
+				t4.strokeStyle="black";
+				t4.stroke();
 			};
 		};
 
