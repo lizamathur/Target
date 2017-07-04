@@ -1,0 +1,9 @@
+*{
+		margin: 0px;
+		padding: 0px;
+		overflow: hidden;
+}
+#mycanvas{
+	
+	background-color: #e0ccff;
+}
