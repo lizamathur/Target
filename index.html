@@ -16,11 +16,6 @@
 	<canvas id="mycanvas" width="1350" height="620"></canvas>
 
 	<script type="text/javascript">
-
-																	//<b id="space1">Score: &nbsp</b>
-																		//<b id="score">0</b>
-
-		
 		var bullet;
 		var flag; //initially: 0  ; 2 when mouse inside range
 		var click; //initially: 0 ; 1 when mouse clicked inside range(bullet fires)
@@ -40,9 +35,13 @@
 			hit=0;
 
 			audio1=new sound("sounds/swoosh.wav");
+			audio1.load();
 			audio2=new sound("sounds/gameover.flac");
+			audio2.load();
 			audio3=new sound("sounds/hit.wav");
+			audio3.load();
 			audio4=new sound("sounds/highscore.wav");
+			audio4.load();
 			range=new component(180,420,130,"","line");
 			guide=new component(180,420,5,"","guide");
 			var x=(Math.random()*800)+400;
