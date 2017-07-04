@@ -4,35 +4,45 @@
 
 	<style type="text/css">
 		#mycanvas{
-			border: 1px solid #d3d3d3;
-			background-color: pink;
+			background-color: #e0ccff;
+		}
+		body{
+			background-color: #e0ccff;
 		}
 	</style>
 </head>
 
 <body onload="startGame();">
-
-
-	<canvas id="mycanvas" width="1350" height="650"></canvas>
+	<canvas id="mycanvas" width="1350" height="620"></canvas>
 
 	<script type="text/javascript">
 
+																	//<b id="space1">Score: &nbsp</b>
+																		//<b id="score">0</b>
 
-		var shoot;
-		var flag;
-		var click;
-		var guide;
-		var outline;
 		
+		var bullet;
+		var flag; //initially: 0  ; 2 when mouse inside range
+		var click; //initially: 0 ; 1 when mouse clicked inside range(bullet fires)
+		var range;
+		var guide;
+		var target;
+		var score=0;
+		var hit;
+		var scorecard;
+		
+
 		var startGame = function(){
 			flag=0;
-			click=0; // 1 when fired
-			//console.log(flag);
-
-			shoot=new component(180,420,20,"blue","circ"); //bullet
-			guide=new component(180,420,130,"yellow","line"); //bigger circle
-			outline=new component(180,420,5,"green","outline"); //shoot-guide
-
+			click=0;
+			hit=0;
+			range=new component(180,420,130,"","line");
+			guide=new component(180,420,5,"","guide");
+			var x=(Math.random()*800)+400;
+			var y=(Math.random()*30)+520;
+			target=new component2(x,y);
+			bullet=new component(180,420,12,"#009999","circ");
+			scorecard=new component3(150,50);
 			myGameArea.start();
 		};
 
@@ -41,7 +51,7 @@
 			canvas : document.getElementById("mycanvas"),
 			start : function(){
 				this.context=this.canvas.getContext("2d");
-				this.interval = setInterval(updateGameArea,80);
+				interval = setInterval(updateGameArea,80);
 			},
 			clear:function(){
 				this.context.clearRect(0,0,this.canvas.width,this.canvas.height);
@@ -49,82 +59,164 @@
 		};
 
 		var updateGameArea = function(){
+			
 			myGameArea.clear();
-			shoot.newPos();
-			shoot.update();
-			guide.update();
-			outline.update();
+			
+			
+			
+			if(bullet.y>=(myGameArea.canvas.height-70) && ((bullet.x<(target.x-100))|| (bullet.x>(target.x+100)))){
+						score=0;
+						fadeOut("Game Over!")
+						clearInterval(interval);
+						startGame();
+			}
+			else if((bullet.x>(target.x-100))&& (bullet.x<(target.x+100)) && (bullet.y>(target.y-35))){
+						hit=1;
+						score+=10;
+						fadeOut("Score!");
+						/*ctx1=myGameArea.context;
+						ctx1.beginPath();
+						ctx1.arc(this.x,this.y,this.radius,0,Math.PI * 2);
+						ctx1.fillStyle = this.color;
+						ctx1.fill();
+						ctx1.stroke();*/
+						clearInterval(interval);
+						startGame();
+
+			}
+			else{
+				bullet.newPos();
+				range.update();
+				guide.update();
+				target.update1();
+				bullet.update();
+			}
+			scorecard.update2();
+
 		};
 
-		var mouse = {
-			x:null,
-			y:null
+		//object to store mouse x and y position
+		var mouse = {  
+			x:undefined,
+			y:undefined
 		};
 
-		var sx,sy,angle,vx,vy,gravity,r,mx,my,dist,c=0;
+		var mousex,mousey,distx,disty,dist;
+
+		/*mousex: instantaneous x position of mouse
+		  mousey: instantaneous y position of mouse
+		  distx: instantaneous x distance b/w mouse and bullet
+		  distx: instantaneous y distance b/w mouse and bullet
+		  dist: instantaneous exact distance b/w mouse and bullet*/
 		
 
 		addEventListener("mousemove",function(event){
-			//flag=0;
-			//console.log("Entered move outside ",flag);
-			//if(flag!=1){
-				//console.log("Entered move inside ",flag);
-				var cx,cy;
-				mx=event.x; // x position of mouse when fired
-				my=event.y; //y pos of mouse
-				cx=shoot.x-event.x; //x between mouse(moving) and bullet
-				cy=event.y-shoot.y; //y between mouse(moving) and bullet
-				dist=Math.sqrt(cx*cx+cy*cy); //actual dist between bullet and mouse(when moving)
+				mousex=event.x;
+				mousey=event.y;
+				distx=bullet.x-mousex;
+				disty=mousey-bullet.y;
+				dist=Math.sqrt(distx*distx+disty*disty);
 				if(dist<=120 && click!=1){
-					
-					//draws the green pointer when mouse inside the range
 					ctx=myGameArea.context;
 					ctx.beginPath();
-					ctx.arc(event.x,event.y,8,0,Math.PI * 2);
+					ctx.arc(mousex,mousey,8,0,Math.PI * 2);
 					ctx.fillStyle = "green";
 					ctx.fill();
-					ctx.stroke();
-					flag=2; //checks if mouse is inside the circle
+					flag=2;
 				}
-			//}
-
-			
 		});
 
 
-		var angle,v,change;
+		var bx,by,dx,dy,angle,v,vx,vy,gravity,angle;
+
+		/*bx : initial x position of bullet when fired
+		  bx : initial y position of bullet when fired
+		  dx : x distance b/w mouse and bullet when fired
+		  dy : y distance b/w mouse and bullet when fired
+		   v : actual distance b/w mouse and bullet when fired
+	   angle : angle at which the bullet is fired
+		  vx : delta change of bullet along x after being fired
+		  vy : delta change of bullet along y after being fired*/
+		
 		addEventListener("click",function(event){
-			if(flag==2 && click!=1){ //if mouse is inside the circle, click allowed
-				//console.log("entered click",flag);
-				
-				//!!!!here all the variables become constants!!!!
+			if(flag==2 && click!=1){
 				mouse.x=event.x;
 				mouse.y=event.y;
-				sx=shoot.x; //initial x of bullet
-				sy=shoot.y; //initial y of bullet
-				dx=sx-mouse.x; //x between bullet(clicked) and mouse
-				dy=mouse.y-sy; //y between bullet(clicked) and mouse
-				gravity=1;
-				v=Math.sqrt(dx*dx+dy*dy); //actual dist between bullet and mouse(clicked)
-				//range req
-				//console.log(vx/vy);
-				angle=Math.atan2(dx,dy);
-				vx=v*Math.sin(angle)*0.7; 
+				bx=bullet.x;
+				by=bullet.y;
+				dx=bx-mouse.x;
+				dy=mouse.y-by;
+				gravity=10;
+				v=Math.sqrt(dx*dx+dy*dy)/10;
+				angle=Math.atan2(dx,dy); //in RADIANS
+				vx=v*Math.sin(angle);
 				vy=v*Math.cos(angle);
-				angle=angle*180/Math.PI;
-				console.log(angle);
-				//console.log("v,vx,vy",v,vx,vy);
-				change=v; //makes the projectile
-				//flag=1;//clicked
-				click=1;//clicked
-				c=1; //ignore
+				angle=angle*180/Math.PI; //in DEGREES
+				click=1;
 			}
 
 		});
 
+		function component3(x,y){
+			var text="Score : "
+			var instruction;
+			this.x=x;
+			this.y=y;
+			this.update2 = function(){
+				txt=myGameArea.context;
+				txt.font="40px Comic Sans MS";
+				txt.fillStyle = "#009999";
+				txt.textAlign = "center";
+				txt.fillText(text+score,this.x,this.y);
+
+				rule=myGameArea.context;
+				rule.font="25px Comic Sans MS";
+				rule.fillStyle = "#5900b3";
+				rule.textAlign = "left";
+				instruction="Drag and position the"; 
+				rule.fillText(instruction,1000,this.y);
+				instruction="mouse within the range"; 
+				rule.fillText(instruction,990,this.y+30);
+				instruction="to adjust angle and velocity"; 
+				rule.fillText(instruction,970,this.y+60);
+				instruction="CLICK to fire!"; 
+				rule.fillText(instruction,1060,this.y+100);
+			};
+		};
+
+		function component2(x,y){
+		
+			this.x=x;
+			this.y=y;
+			this.update1 = function(){
+				t1=myGameArea.context;
+				t2=myGameArea.context;
+				t3=myGameArea.context;
+				t4=myGameArea.context;
+
+				t1.beginPath();
+				t1.ellipse(this.x,this.y,100,35,0,0,Math.PI*2);
+				t1.fillStyle = "#cc0000";
+				t1.fill();
+
+				t2.beginPath();
+				t2.ellipse(this.x,this.y,80,25,0,0,Math.PI*2);
+				t2.fillStyle = "#ffffff";
+				t2.fill();
+
+				t3.beginPath();
+				t3.ellipse(this.x,this.y,60,14,0,0,Math.PI*2);
+				t3.fillStyle = "#cc0000";
+				t3.fill();
+
+				t4.beginPath();
+				t4.ellipse(this.x,this.y,25,6,0,0,Math.PI*2);
+				t4.fillStyle = "#ffffff";
+				t4.fill();
+			};
+		};
+
 		function component(x,y,radius,color,type){
-
-
 			this.x=x;
 			this.y=y;
 			this.radius=radius;
@@ -134,70 +226,73 @@
 			this.update = function(){
 
 				if(this.type=="circ"){
-					//alert("circ");
-					ctx=myGameArea.context;
-					ctx.beginPath();
-					ctx.arc(this.x,this.y,this.radius,0,Math.PI * 2);
-					ctx.fillStyle = this.color;
-					ctx.fill();
-					ctx.stroke();
+					ctx1=myGameArea.context;
+					ctx1.beginPath();
+					ctx1.arc(this.x,this.y,this.radius,0,Math.PI * 2);
+					ctx1.fillStyle = this.color;
+					ctx1.fill();
 				}
-				else if(this.type=="outline" && dist<=120){
-					//alert("outline");
-					abc=myGameArea.context;
-					abc.beginPath();
-					abc.moveTo(this.x,this.y);
-					abc.lineTo(mx,my);
-					abc.strokeStyle="green";
-					abc.stroke();
+				else if(this.type=="guide" && dist<=120){
+					ctx2=myGameArea.context;
+					ctx2.beginPath();
+					ctx2.moveTo(this.x,this.y);
+					ctx2.lineTo(mousex,mousey);
+					if(click==1)
+					ctx2.strokeStyle="#e0ccff"
+					else
+					ctx2.strokeStyle="#e6ffe6";
+					ctx2.stroke();
 				}
 				else
 				{
-					//alert("guide");
-					ctx=myGameArea.context;
-					ctx.beginPath();
-					ctx.arc(this.x,this.y,this.radius,0,Math.PI * 2);
-					ctx.strokeStyle="red";
-					ctx.stroke();
+					ctx3=myGameArea.context;
+					ctx3.beginPath();
+					ctx3.arc(this.x,this.y,this.radius,0,Math.PI * 2);
+					ctx3.strokeStyle="red";
+					ctx3.stroke();
 				}
-
 
 			};
 
 
-
 			this.newPos = function(){
-				if(click==1){ //if clicked in the range
+				if(click==1){
 
-					if(this.y>=630-this.radius){
-						this.y=630-this.radius;
-						/*if(c==1){
-							this.x-=vx/5;
-							c=0;
-						}else{*/
-							this.x+=0;
-						//}
 
+					if(angle<=90 && angle>=-90){
+						
+						this.x+=7*vx;
+						this.y-=gravity+6*vy;
+						vy-=1;
+						
+					}					
+					else
+					{
+						this.x+=2*vx;
+						this.y+=gravity-vy;
+						vy-=1;
+						
 					}
-					else{
-						if(angle>-90 && angle<90){
-
-							this.x+=vx+1.5*angle;
-							this.y=this.y-(vy-gravity+change);
-							change-=60;
-							//insert code for ball movement
-						}
-						else{
-							this.x+=vx-angle/100;
-							this.y=this.y+(vy-gravity+change);
-							change+=60;
-						}
-					}
-
+					
 				}
 				
 			};
 		};
+
+		function fadeOut(text) {
+    	var alpha = 1.0,  
+        interval3 = setInterval(function () {
+	            msg=myGameArea.context;
+	            msg.textAlign="center";
+	            msg.fillStyle = "rgba(255, 140, 26, " + alpha + ")";
+	            msg.font = "italic 100px Arial";
+	            msg.fillText(text, myGameArea.canvas.width/2, myGameArea.canvas.height/2);
+	            alpha = alpha - 0.05; 
+	            if (alpha < 0) {clearInterval(interval3);
+	            }
+	        }, 50); 
+   		}
+
 
 
 	</script>
