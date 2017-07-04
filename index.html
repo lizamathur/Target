@@ -31,13 +31,18 @@
 		var highScore=0;
 		var hit;
 		var scorecard;
-		var audio;
+		var audio1,audio2,audio3,audio4;
 		
 
 		var startGame = function(){
 			flag=0;
 			click=0;
 			hit=0;
+
+			audio1=new sound("sounds/swoosh.wav");
+			audio2=new sound("sounds/gameover.flac");
+			audio3=new sound("sounds/hit.wav");
+			audio4=new sound("sounds/highscore.wav");
 			range=new component(180,420,130,"","line");
 			guide=new component(180,420,5,"","guide");
 			var x=(Math.random()*800)+400;
@@ -69,8 +74,7 @@
 			
 			if(bullet.y>=(myGameArea.canvas.height-70) && ((bullet.x<(target.x-100))|| (bullet.x>(target.x+100)))){
 						score=0;
-						var audio=new sound("sounds/gameover.flac");
-						audio.play();
+						audio2.play();
 						fadeOut("Game Over!")
 						clearInterval(interval);
 						startGame();
@@ -87,21 +91,13 @@
 						else
 							score+=5;
 						if(score>highScore){
-							var audio=new sound("sounds/highscore.wav");
-							audio.play();
+							audio4.play();
 							highScore=score;
 						}
 						else{
-							var audio=new sound("sounds/hit.wav");
-							audio.play();
+							audio3.play();
 						}
 						fadeOut("Score!");
-						/*ctx1=myGameArea.context;
-						ctx1.beginPath();
-						ctx1.arc(this.x,this.y,this.radius,0,Math.PI * 2);
-						ctx1.fillStyle = this.color;
-						ctx1.fill();
-						ctx1.stroke();*/
 						clearInterval(interval);
 						startGame();
 
@@ -114,7 +110,6 @@
 				bullet.update();
 			}
 			scorecard.update2();
-			//highScoreCard.update2();
 
 		};
 
@@ -129,9 +124,6 @@
 		    this.play = function(){
 		        this.sound.play();
 		    }
-		    /*this.stop = function(){
-		        this.sound.pause();
-		    }  */  
 		}
 
 		//object to store mouse x and y position
@@ -192,8 +184,7 @@
 				vy=v*Math.cos(angle);
 				angle=angle*180/Math.PI; //in DEGREES
 				click=1;
-				var audio=new sound("sounds/swoosh.wav");
-				audio.play();
+				audio1.play();
 			}
 
 		});
